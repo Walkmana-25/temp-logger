@@ -53,8 +53,16 @@ def get_count():
     else:
         try:
             os.remove("count.txt")
-            os.remove("data.csv")
-        except Exception::
+            
+            files = [
+                f for f in os.listdir() if f.endswith(".old")
+            ]
+            sorted_files = sorted(files)
+            next = f"{int(sorted_files[0].split(".")[0])}.data.csv.old"
+
+            os.rename("data.csv", "{}.old".format(next))
+
+        except Exception:
             pass
 
     return count
