@@ -16,11 +16,13 @@ adc = ADC(TEMP_SENSOR_CHANNEL)
 
 SLEEP_PERIOD = 10
 
+count = 0
+
 # Reset LED
-led.value(0)
+led.value(1)
 
 def write_csv(count, temperature):
-    time_data = (SLEEP_PERIOD + 60) * count
+    time_data = (SLEEP_PERIOD + 10) * count
     with open("data.csv", "a") as file:
         file.write("{},{}\n".format(time_data, temperature))
 
@@ -39,62 +41,63 @@ async def blink():
         await asyncio.sleep(random.randint(1, 5) / 10)
 
 def get_count():
-    count = 0
+    global count
     
-    if machine.reset_cause() == machine.DEEPSLEEP_RESET:
+    if count == 0:
         try:
-            with open("count.txt", "r") as file:
-                count = int(file.read())
-        except Exception:
-            pass
-
-        with open("count.txt", "w") as file:
-            file.write(str(count + 1))
-    else:
-        try:
-            os.remove("count.txt")
+            try:
+                os.remove("count.txt")
+            except Exception:
+                pass
             
             files = [
                 f for f in os.listdir() if f.endswith(".old")
             ]
-            sorted_files = sorted(files)
-            next = f"{int(sorted_files[0].split(".")[0])}.data.csv.old"
+            next = "0.data.csv.old"
+            sorted_files = []
+            if len(files) != 0:
+                sorted_files = sorted(files)
+                next = f"{int(sorted_files[0].split(".")[0]) + 1}.data.csv.old"
+
 
             os.rename("data.csv", "{}.old".format(next))
 
-        except Exception:
+        except Exception as e:
+            print(e)
             pass
+    count += 1
 
-    return count
 
 async def main():
-    machine.freq(50000000)
-    print("CPU Freq:", machine.freq() / 1000000, "MHz")
-    # start blinking 
-    start_time = time.time()
-    loop = asyncio.get_event_loop()
-    loop.create_task(blink())
-    print("Starting Task")
+    while True:
+        global count
+        machine.freq(50000000)
+        print("CPU Freq:", machine.freq() / 1000000, "MHz")
+        # start blinking 
+        start_time = time.time()
+        loop = asyncio.get_event_loop()
+        loop.create_task(blink())
+        print("Starting Task")
 
-    #---Write your code here---
-    count = get_count()
+        #---Write your code here---
+        get_count()
 
-    sensor_value = adc.read_u16()
-    temperature = convert_to_temperature(sensor_value)
+        sensor_value = adc.read_u16()
+        temperature = convert_to_temperature(sensor_value)
 
-    print("Count: {}, Temperature: {:.2f} Celsius".format(count, temperature))
+        print("Count: {}, Temperature: {:.2f} Celsius".format(count, temperature))
 
-    write_csv(count, temperature)
+        write_csv(count, temperature)
 
-    #--------------------------
+        #--------------------------
 
-    while time.time() - start_time < 10:
-        await asyncio.sleep(1)
+        while time.time() - start_time < 10:
+            await asyncio.sleep(1)
 
-    loop.stop()
-    print("Task Completed")
-    led.off()
-    machine.deepsleep(SLEEP_PERIOD * 1000)
+        loop.stop()
+        print("Task Completed")
+        led.on()
+        machine.lightsleep(SLEEP_PERIOD * 1000)
 
 if __name__ == "__main__":
     asyncio.run(main())
