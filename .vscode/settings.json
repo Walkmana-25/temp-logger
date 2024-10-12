@@ -1,0 +1,20 @@
+{
+    "python.languageServer": "Pylance",
+    "python.analysis.typeCheckingMode": "basic",
+    "python.analysis.diagnosticSeverityOverrides": {
+        "reportMissingModuleSource": "none",
+        "reportShadowedImports": "none"
+    },
+    "python.terminal.activateEnvironment": false,
+    "micropico.syncFolder": "",
+    "micropico.openOnStart": true,
+    "python.analysis.typeshedPaths": [
+        "~/.micropico-stubs/included"
+    ],
+    "python.analysis.extraPaths": [
+        "",
+        "/home/yuuta/.vscode/extensions/joedevivo.vscode-circuitpython-0.2.0-linux-x64/stubs",
+        "/home/yuuta/.config/Code/User/globalStorage/joedevivo.vscode-circuitpython/bundle/20241012/adafruit-circuitpython-bundle-py-20241012/lib"
+    ],
+    "circuitpython.board.version": null
+}
